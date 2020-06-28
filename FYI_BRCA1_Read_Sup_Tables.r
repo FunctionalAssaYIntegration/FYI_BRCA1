@@ -749,3 +749,4 @@ stable9_E_C <- stable9_form (reference_panel_E_C_counts, stable1_E_C, assay_clas
 
 #STABLE10
 stable10_E <- stable10_form (hi_set_tracks_E, hi_set_table_E)
+stable10_E_C <- stable10_form (hi_set_tracks_E_C, hi_set_table_E_C)
