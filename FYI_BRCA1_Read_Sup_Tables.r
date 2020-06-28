@@ -749,16 +749,3 @@ stable9_E_C <- stable9_form (reference_panel_E_C_counts, stable1_E_C, assay_clas
 
 #STABLE10
 stable10_E <- stable10_form (hi_set_tracks_E, hi_set_table_E)
-
-#Output excel file update
-write.xlsx(variants_tested,file="output_E.xlsx", sheetName="STable6_Missense_Variants_tested")
-write.xlsx(BRCAExchange,file="output_E.xlsx", sheetName="STable6_Documented_Variants(BRCAExchange)", append=TRUE)
-write.xlsx(VUS_tested,file="output_E.xlsx", sheetName="STable6_VUS_only_(excluding reference variants)", append=TRUE)
-write.xlsx(Tracks,file="output_E.xlsx", sheetName="STable7_Functional_track_throughput", append=TRUE)
-write.xlsx(Ratios,file="output_E.xlsx", sheetName="STable7_#_variants_classified_by_track", append=TRUE)
-write.xlsx(Criteria,file="output_E.xlsx", sheetName="STable7_#_tracks_meeting_criteria", append=TRUE)
-write.xlsx(assay_classe,file="output_E.xlsx", sheetName="STable8_Assay_classes", append=TRUE)
-write.xlsx(host_species,file="output_E.xlsx", sheetName="STable8_host_classes", append=TRUE)
-write.xlsx(stable9,file="output_E.xlsx", sheetName="STable9_Sensitivity_specificity", append=TRUE, row.names=FALSE)
-write.xlsx(clean_hi_set,file="output_E.xlsx", sheetName="STable 10_Hi Set Approach", append=TRUE, row.names=FALSE)
-write.xlsx(hi_set_numbers,file="output_E.xlsx", sheetName="Numbers_from_Hi_Set_Pick", append=TRUE)
