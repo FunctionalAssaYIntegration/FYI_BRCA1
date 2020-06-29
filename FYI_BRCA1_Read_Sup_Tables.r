@@ -3,7 +3,7 @@ library("readxl")
 library("xlsx")
 
 #Load the main excel files - stble1 (master table) and stable 2(track reference)
-stable1 = as.data.frame(read_excel("Sup_tables_GIM_JUN_2020 REV FINAL.xlsx", sheet = "STable 1", col_names = TRUE, na=""))
+stable1 = as.data.frame(read_excel("Sup_tables_GIM_JUN_2020 REV FINAL.xlsx", sheet = "STable 1", col_names = TRUE, na="", guess_max = 15000))
 stable2 = as.data.frame(read_excel("Sup_tables_GIM_JUN_2020 REV FINAL.xlsx", sheet = "STable 2", col_names = TRUE, na=""))
 stable3 = as.data.frame(read_excel("Sup_tables_GIM_JUN_2020 REV FINAL.xlsx", sheet = "STable 3", col_names = TRUE, na=""))
 stable4 = as.data.frame(read_excel("Sup_tables_GIM_JUN_2020 REV FINAL.xlsx", sheet = "STable 4", col_names = TRUE, na=""))
@@ -628,9 +628,13 @@ stable9_form <- function(df_variants_reference_panel,my_data, assay_classes, Esp
 #Remove variants not tested in Hi-Set
 stable10_form <- function(hi_set_tracks, hi_set_table){
   n_col <- ncol(hi_set_tracks)
-  hi_set_tracks$"no_functional_impact_Hi_set" <- rowSums(hi_set_tracks[,10:n_col] == 0, na.rm = TRUE)
-  hi_set_tracks$"functional_impact_Hi_set" <- rowSums(hi_set_tracks[,10:n_col] == 1, na.rm = TRUE)
-  hi_set_tracks$"number_of_tests_Hi_set" <- rowSums(hi_set_tracks[,10:n_col] <= 1, na.rm = TRUE)
+  set_numb <- ncol(hi_set_tracks)+5
+  functional_col <- ncol(hi_set_tracks)+2
+  no_functional_col <- ncol(hi_set_tracks)+1
+  
+  hi_set_tracks$"no_functional_impact_Hi_set" <- rowSums(hi_set_tracks[,4:n_col] == 0, na.rm = TRUE)
+  hi_set_tracks$"functional_impact_Hi_set" <- rowSums(hi_set_tracks[,4:n_col] == 1, na.rm = TRUE)
+  hi_set_tracks$"number_of_tests_Hi_set" <- rowSums(hi_set_tracks[,4:n_col] <= 1, na.rm = TRUE)
   clean_hi_set <- data.frame()[1:11009,]
   for (i in 1:nrow(hi_set_tracks)){
     select <- hi_set_tracks[i,ncol(hi_set_tracks)]
@@ -647,45 +651,44 @@ stable10_form <- function(hi_set_tracks, hi_set_table){
         evidence_path <- hi_set_table[y,19]
         evidence_benign <- hi_set_table[y,20]
         for (z in 1:nrow(clean_hi_set)){
+          
           if (clean_hi_set[z,x] == 1){
-            if (clean_hi_set[z,26]== 1){
-              clean_hi_set[z,27] <- evidence_path
+            if (clean_hi_set[z,ncol(clean_hi_set)-1]== 1){
+              clean_hi_set[z,ncol(clean_hi_set)] <- evidence_path
             }
           }
           if (clean_hi_set[z,x] == 0){
-            if (clean_hi_set[z,26]== 1){
-              clean_hi_set[z,27] <- evidence_benign
+            if (clean_hi_set[z,ncol(clean_hi_set)-1]== 1){
+              clean_hi_set[z,ncol(clean_hi_set)] <- evidence_benign
             }
           }
         }
       }
     }
   }
+  
   for (z in 1:nrow(clean_hi_set)){
-    p <- 28
-    if (clean_hi_set[z,25] > 1 & clean_hi_set[z,24] == 0){
-      for (q in 4:23){
-        if (clean_hi_set[z,q]==1){    
-          y <- colnames(clean_hi_set)[q]  
-          for (x in rownames(hi_set_table)){
-            if (x==y){
-              clean_hi_set[z,p] <- hi_set_table [y,19]
-              p <- p+1
-            }
-          }
-        } 
-      }  
-    }  
-  }
-  for (z in 1:nrow(clean_hi_set)){
-    p <- 28
-    if (clean_hi_set[z,24] > 1 & clean_hi_set[z,25] == 0){
-      for (q in 4:23){
+    p <- set_numb
+    if (clean_hi_set[z,no_functional_col] > 1 & clean_hi_set[z,functional_col] == 0){
+      for (q in 4:n_col){
         if (clean_hi_set[z,q]==0){    
           y <- colnames(clean_hi_set)[q]  
           for (x in rownames(hi_set_table)){
             if (x==y){
               clean_hi_set[z,p] <- hi_set_table [y,20]
+              p <- p+1
+            }
+          }
+        } 
+      }  
+    }
+    if (clean_hi_set[z,functional_col] > 1 & clean_hi_set[z,no_functional_col] == 0){
+      for (q in 4:n_col){
+        if (clean_hi_set[z,q]==1){    
+          y <- colnames(clean_hi_set)[q]  
+          for (x in rownames(hi_set_table)){
+            if (x==y){
+              clean_hi_set[z,p] <- hi_set_table [y,19]
               p <- p+1
             }
           }
@@ -750,3 +753,29 @@ stable9_E_C <- stable9_form (reference_panel_E_C_counts, stable1_E_C, assay_clas
 #STABLE10
 stable10_E <- stable10_form (hi_set_tracks_E, hi_set_table_E)
 stable10_E_C <- stable10_form (hi_set_tracks_E_C, hi_set_table_E_C)
+
+#Output excel file for reference panel [ENIGMA]
+write.xlsx(variants_tested,file="output_E.xlsx", sheetName="STable6_Missense_Variants_tested")
+write.xlsx(BRCAExchange_E_counts,file="output_E.xlsx", sheetName="STable6_Documented_Variants(BRCAExchange)", append=TRUE)
+write.xlsx(VUS_only_E,file="output_E.xlsx", sheetName="STable6_VUS_only_(excluding reference variants)", append=TRUE)
+write.xlsx(tested_variants_E,file="output_E.xlsx", sheetName="STable7_Functional_track_throughput", append=TRUE)
+write.xlsx(ratio_criteria_1_E,file="output_E.xlsx", sheetName="STable7_#_variants_classified_by_track", append=TRUE)
+write.xlsx(ratio_criteria_2_E,file="output_E.xlsx", sheetName="STable7_#_tracks_meeting_criteria", append=TRUE)
+write.xlsx(assay_class_table_E,file="output_E.xlsx", sheetName="STable8_Assay_classes", append=TRUE)
+write.xlsx(host_species_table_E,file="output_E.xlsx", sheetName="STable8_host_classes", append=TRUE)
+write.xlsx(stable9_E,file="output_E.xlsx", sheetName="STable9_Sensitivity_specificity", append=TRUE, row.names=FALSE)
+write.xlsx(stable10_E,file="output_E.xlsx", sheetName="STable 10_Hi Set Approach", append=TRUE, row.names=FALSE)
+write.xlsx(hi_set_numbers_E,file="output_E.xlsx", sheetName="Numbers_from_Hi_Set_Pick", append=TRUE)
+
+#Output excel file for reference panel [ENIGMA + CLIN VAR]
+write.xlsx(variants_tested,file="output_E_C.xlsx", sheetName="STable6_Missense_Variants_tested")
+write.xlsx(BRCAExchange_E_C_counts,file="output_E_C.xlsx", sheetName="STable6_Documented_Variants(BRCAExchange)", append=TRUE)
+write.xlsx(VUS_only_E_C,file="output_E_C.xlsx", sheetName="STable6_VUS_only_(excluding reference variants)", append=TRUE)
+write.xlsx(tested_variants_E_C,file="output_E_C.xlsx", sheetName="STable7_Functional_track_throughput", append=TRUE)
+write.xlsx(ratio_criteria_1_E_C,file="output_E_C.xlsx", sheetName="STable7_#_variants_classified_by_track", append=TRUE)
+write.xlsx(ratio_criteria_2_E_C,file="output_E_C.xlsx", sheetName="STable7_#_tracks_meeting_criteria", append=TRUE)
+write.xlsx(assay_class_table_E_C,file="output_E_C.xlsx", sheetName="STable8_Assay_classes", append=TRUE)
+write.xlsx(host_species_table_E_C,file="output_E_C.xlsx", sheetName="STable8_host_classes", append=TRUE)
+write.xlsx(stable9_E_C,file="output_E_C.xlsx", sheetName="STable9_Sensitivity_specificity", append=TRUE, row.names=FALSE)
+write.xlsx(stable10_E_C,file="output_E_C.xlsx", sheetName="STable 10_Hi Set Approach", append=TRUE, row.names=FALSE)
+write.xlsx(hi_set_numbers_E_C,file="output_E_C.xlsx", sheetName="Numbers_from_Hi_Set_Pick", append=TRUE)
