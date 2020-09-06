@@ -21,33 +21,6 @@ for (i in 1:nrow(reference_panel_E)){
 }
 reference_panel_E <- as.data.frame(reference_panel_E[!is.na(reference_panel_E$"T7"), ])
 
-#Creating stable1 with T7 for [E+C]
-stable1_E_C <- stable1
-stable1_E_C$"T7"[!is.na(stable1_E_C$"T7")] <- NA
-for (i in 1:nrow(stable1_E_C)){
-  var_aa_st1 <- stable1_E_C[i,5]
-  for (z in 1:nrow(stable4)){
-    var_aa_st4 <- stable4[z,3]
-    if (var_aa_st1 == var_aa_st4){
-      stable1_E_C[i,7] <- stable4[z,8] 
-    }
-  }
-}
-
-#Preparing reference panel table [E+C]
-reference_panel_E_C <- stable1
-reference_panel_E_C$"T7"[!is.na(reference_panel_E_C$"T7")] <- NA
-for (i in 1:nrow(reference_panel_E_C)){
-  var_aa_st1 <- reference_panel_E_C[i,5]
-  for (z in 1:nrow(stable4)){
-    var_aa_st4 <- stable4[z,3]
-    if (var_aa_st1 == var_aa_st4){
-      reference_panel_E_C[i,7] <- stable4[z,8] 
-    }
-  }
-}
-reference_panel_E_C <- as.data.frame(reference_panel_E_C[!is.na(reference_panel_E_C$"T7"), ])
-
 #Table with sum of numbers from each variant in master table (row by row)
 stable1_counts <- data.frame()[1:nrow(stable1),]
 stable1_counts$"no_functional_impact" <- rowSums(stable1[,10:ncol(stable1)] == 0, na.rm= TRUE)  
@@ -703,58 +676,44 @@ stable10_form <- function(hi_set_tracks, hi_set_table){
 #OUTPUTS
 #Espec_sens_Calculation
 Espec_Sens_table_E <- espec_sens_calculation(reference_panel_E)
-Espec_Sens_table_E_C <- espec_sens_calculation(reference_panel_E_C)
 #Counts from Reference panel Enigma and Reference panel Enigma + ClinVar
 reference_panel_E_counts <- count_reference_panel(reference_panel_E, stable1)  
-reference_panel_E_C_counts <- count_reference_panel(reference_panel_E_C, stable1_E_C) 
 #Hi-Set Table
 hi_set_table_E <- hi_set_table(Espec_Sens_table_E, reference_panel_E_counts)
-hi_set_table_E_C <- hi_set_table(Espec_Sens_table_E_C, reference_panel_E_C_counts)
 #Hi-set tracks
 hi_set_tracks_E <- hi_set_tracks(hi_set_table_E, stable1)
-hi_set_tracks_E_C <- hi_set_tracks(hi_set_table_E_C, stable1_E_C)
 #Hi-set Counts
 hi_set_counts_E <- hi_set_counts(hi_set_tracks_E)
-hi_set_counts_E_C <- hi_set_counts(hi_set_tracks_E_C)
 #Hi-set numbers cited on the paper
 hi_set_numbers_E <- hi_set_numbers(hi_set_tracks_E)
-hi_set_numbers_E_C <- hi_set_numbers(hi_set_tracks_E_C)
+
 
 #STABL6_A_Number of variants tested per 
 variants_tested <- count_variant_tested(stable1,stable1_counts)
 #STABLE6_B_Documented variants tested
 BRCAExchange_E_counts <- count_BRCAExchange(stable1,stable1_counts,reference_panel_E)
-BRCAExchange_E_C_counts <- count_BRCAExchange(stable1_E_C,stable1_counts,reference_panel_E_C)
 #STABLE6_C_VUS_ONLY(Excluding reference panel)
 VUS_only_E <- vus_tested(stable1, hi_set_tracks_E, stable3)
-VUS_only_E_C <- vus_tested(stable1_E_C, hi_set_tracks_E_C, stable4)
 
 #STABLE7_A_Assay throughput
 tested_variants_E <- count_variant_track(reference_panel_E_counts)
-tested_variants_E_C <- count_variant_track(reference_panel_E_C_counts)
 #STABLE7_B_Number of tracks with number in reference panel [non-pathogenic; pathogenic]>= [x:y]
 ratio_criteria_1_E <- ratio_criteria(Espec_Sens_table_E,reference_panel_E_counts)
-ratio_criteria_1_E_C <- ratio_criteria(Espec_Sens_table_E_C,reference_panel_E_C_counts)
 #STABLE7_C_Number of tracks with number in reference panel tested variants >= 10 and [non-pathogenic; pathogenic]>= [x:y]
 ratio_criteria_2_E <- ratio_criteria_2(Espec_Sens_table_E, reference_panel_E_counts)
-ratio_criteria_2_E_C <- ratio_criteria_2(Espec_Sens_table_E_C, reference_panel_E_C_counts)
 
 #STABLE8_A_Assay_classes
 assay_class_table_E <- assay_classes(stable2, reference_panel_E_counts, Espec_Sens_table_E)
-assay_class_table_E_C <- assay_classes(stable2, reference_panel_E_C_counts, Espec_Sens_table_E_C)
 #STABLE8_B_Host_Species_classes
 host_species_table_E <- host_species(stable2, reference_panel_E_counts, Espec_Sens_table_E)
-host_species_table_E_C <- host_species(stable2, reference_panel_E_C_counts, Espec_Sens_table_E_C)
 
 #STABLE9 
 stable9_E <- stable9_form (reference_panel_E_counts,stable1, assay_class_table_E, Espec_Sens_table_E, stable2)
-stable9_E_C <- stable9_form (reference_panel_E_C_counts, stable1_E_C, assay_class_table_E_C, Espec_Sens_table_E_C, stable2)
 
 #STABLE10
 stable10_E <- stable10_form (hi_set_tracks_E, hi_set_table_E)
-stable10_E_C <- stable10_form (hi_set_tracks_E_C, hi_set_table_E_C)
 
-#Output excel file for reference panel [ENIGMA]
+#Output excel file for reference panel [ENIGMA+CLIN VAR]
 write.xlsx(variants_tested,file="output_E.xlsx", sheetName="STable6_Missense_Variants_tested")
 write.xlsx(BRCAExchange_E_counts,file="output_E.xlsx", sheetName="STable6_Documented_Variants(BRCAExchange)", append=TRUE)
 write.xlsx(VUS_only_E,file="output_E.xlsx", sheetName="STable6_VUS_only_(excluding reference variants)", append=TRUE)
@@ -767,15 +726,3 @@ write.xlsx(stable9_E,file="output_E.xlsx", sheetName="STable9_Sensitivity_specif
 write.xlsx(stable10_E,file="output_E.xlsx", sheetName="STable 10_Hi Set Approach", append=TRUE, row.names=FALSE)
 write.xlsx(hi_set_numbers_E,file="output_E.xlsx", sheetName="Numbers_from_Hi_Set_Pick", append=TRUE)
 
-#Output excel file for reference panel [ENIGMA + CLIN VAR]
-write.xlsx(variants_tested,file="output_E_C.xlsx", sheetName="STable6_Missense_Variants_tested")
-write.xlsx(BRCAExchange_E_C_counts,file="output_E_C.xlsx", sheetName="STable6_Documented_Variants(BRCAExchange)", append=TRUE)
-write.xlsx(VUS_only_E_C,file="output_E_C.xlsx", sheetName="STable6_VUS_only_(excluding reference variants)", append=TRUE)
-write.xlsx(tested_variants_E_C,file="output_E_C.xlsx", sheetName="STable7_Functional_track_throughput", append=TRUE)
-write.xlsx(ratio_criteria_1_E_C,file="output_E_C.xlsx", sheetName="STable7_#_variants_classified_by_track", append=TRUE)
-write.xlsx(ratio_criteria_2_E_C,file="output_E_C.xlsx", sheetName="STable7_#_tracks_meeting_criteria", append=TRUE)
-write.xlsx(assay_class_table_E_C,file="output_E_C.xlsx", sheetName="STable8_Assay_classes", append=TRUE)
-write.xlsx(host_species_table_E_C,file="output_E_C.xlsx", sheetName="STable8_host_classes", append=TRUE)
-write.xlsx(stable9_E_C,file="output_E_C.xlsx", sheetName="STable9_Sensitivity_specificity", append=TRUE, row.names=FALSE)
-write.xlsx(stable10_E_C,file="output_E_C.xlsx", sheetName="STable 10_Hi Set Approach", append=TRUE, row.names=FALSE)
-write.xlsx(hi_set_numbers_E_C,file="output_E_C.xlsx", sheetName="Numbers_from_Hi_Set_Pick", append=TRUE)
