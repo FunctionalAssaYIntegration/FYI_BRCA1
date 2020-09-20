@@ -671,6 +671,45 @@ stable9_form <- function(hi_set_tracks, hi_set_table){
   return(clean_hi_set)
 }
 
+stable10_form <- function(stable9_E_C, hi_set_table){
+  set_numb <- 33
+  clean_discordant <- data.frame()[1:11009,]
+  for (i in 1:nrow(stable9_E_C)){
+    select <- stable9_E_C[i,29]
+    if (select == "Discordant"){
+      clean_discordant <- as.data.frame(rbind(clean_discordant, stable9_E_C[i,1:29]))
+    }
+  }
+  clean_discordant$"Ratio Benign/Path" <- (-1*((clean_discordant[,27]-clean_discordant[,28])/clean_discordant[,27]))
+  clean_discordant$"Log2ratio" <- log2(clean_discordant$"Ratio Benign/Path")
+  
+  clean_discordant$Call <- NA
+  clean_discordant[is.na(clean_discordant)] <- "NA"
+  for (x in colnames(clean_discordant)){
+    for (y in rownames(Espec_Sens_table_E_C)){
+      if (x == y){
+        evidence_path <- hi_set_table[y,19]
+        evidence_benign <- hi_set_table[y,20]
+        
+        for (z in 1:nrow(clean_discordant)){ #Now moving through the rows to find the variant tested in the track
+          
+          if (clean_discordant[z,x] == 1){ #Find the functional impact mark
+            if (clean_discordant[z,30]== 1){ #Check if the variant was tested only once
+              clean_discordant[z,32] <- "Discordant"
+            }
+          }
+          if (clean_discordant[z,x] == 0){
+            if (clean_discordant[z,30]== 2){
+              clean_discordant[z,32] <- "Discordant"
+            }
+          }
+        }
+      }
+    }
+  }
+  return (clean_discordant)
+}
+
 stable11_form <- function(stable1, hi_set_table){
   #Setting important numbers before adding columns to the table
   n_col <- ncol(stable1)
@@ -688,7 +727,7 @@ stable11_form <- function(stable1, hi_set_table){
     }
   }
   
-  clean_stable1$"Ratio Benign/Path" <- mpfr((clean_stable1[,141]-clean_stable1[,142])/clean_stable1[,141],7)
+  clean_stable1$"Ratio Benign/Path" <- (-1*((clean_stable1[,142]-clean_stable1[,143])/clean_stable1[,142]))
   clean_stable1$"Log2ratio" <- log2(clean_stable1$"Ratio Benign/Path")
   
   #Catching the evidence path for each track (column) - one by one
@@ -818,8 +857,11 @@ stable8_E_C <- stable8_form (reference_panel_E_C_counts, stable1, assay_class_ta
 #STABLE9
 stable9_E_C <- stable9_form (hi_set_tracks_E_C, hi_set_table_E_C)
 
+#STABLE10
+stable10_E_C <- stable10_form (stable9_E_C)
+
 #STABLE11
-stable11_E_C <- stable15_form (stable1, Espec_Sens_table_E_C)
+stable11_E_C <- stable11_form (stable1, Espec_Sens_table_E_C)
 
 #######################################################|||| OUTPUT ||||#######################################################
 
